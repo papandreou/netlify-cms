@@ -56,11 +56,20 @@ import slateToRemark from './slateRemark';
  *   for serialization to/from Slate's Raw AST and MDAST.
  */
 
+function base64Encode(str) {
+  if (typeof window !== 'undefined' && typeof window.btoa === 'function') {
+    return window.btoa(str);
+  }
+  return new Buffer(str, 'utf-8').toString('base64');
+}
 
 /**
  * Deserialize a Markdown string to an MDAST.
  */
 export const markdownToRemark = markdown => {
+  // Turn "::: ComponentName\n<yaml block>\n:::" into "::: ComponentName <base64>"
+  markdown = markdown.replace(/^::: ([^\n]+)\n([\s\S]+?\n)?:::\n/mg, ($0, $1, $2) => `::: ${ $1 } ${ base64Encode($2 || '') }`);
+
   /**
    * Parse the Markdown string input to an MDAST.
    */
@@ -92,6 +101,12 @@ function markdownToRemarkRemoveTokenizers({ inlineTokenizers }) {
   });
 }
 
+function base64Decode(str) {
+  if (typeof window !== 'undefined' && typeof window.atob === 'function') {
+    return window.atob(str);
+  }
+  return new Buffer(str, 'base64').toString();
+}
 
 /**
  * Serialize an MDAST to a Markdown string.
@@ -135,10 +150,13 @@ export const remarkToMarkdown = obj => {
     .use(remarkStripTrailingBreaks)
     .runSync(mdast);
 
-  const markdown = unified()
+  let markdown = unified()
     .use(remarkToMarkdownPlugin, remarkToMarkdownPluginOpts)
     .use(remarkAllowAllText)
     .stringify(processedMdast);
+
+  // Convert "::: ComponentName <base64>" back into the nested yaml syntax
+  markdown = markdown.replace(/^::: (\S+) (\S*)$/mg, ($0, $1, $2) => `::: ${ $1 }\n${ base64Decode($2) }:::\n`);
 
   /**
    * Return markdown with trailing whitespace removed.
