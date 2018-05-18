@@ -68,7 +68,7 @@ function base64Encode(str) {
  */
 export const markdownToRemark = markdown => {
   // Turn "::: ComponentName\n<yaml block>\n:::" into "::: ComponentName <base64>"
-  markdown = markdown.replace(/^::: ([^\n]+)\n([\s\S]+?\n)?:::\n/mg, ($0, $1, $2) => `::: ${ $1 } ${ base64Encode($2 || '') }`);
+  markdown = markdown.replace(/^::: ([^\n]+)\n([\s\S]+?\n)?:::/mg, ($0, $1, $2) => `::: ${ $1 } ${ base64Encode($2 || '') }`);
 
   /**
    * Parse the Markdown string input to an MDAST.
@@ -156,7 +156,7 @@ export const remarkToMarkdown = obj => {
     .stringify(processedMdast);
 
   // Convert "::: ComponentName <base64>" back into the nested yaml syntax
-  markdown = markdown.replace(/^::: (\S+) (\S*)$/mg, ($0, $1, $2) => `::: ${ $1 }\n${ base64Decode($2) }:::\n`);
+  markdown = markdown.replace(/^::: (\S+) (\S*)$/mg, ($0, $1, $2) => `::: ${ $1 }\n${ base64Decode($2) }:::`);
 
   /**
    * Return markdown with trailing whitespace removed.
