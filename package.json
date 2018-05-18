@@ -1,5 +1,5 @@
 {
-  "name": "netlify-cms",
+  "name": "netlify-cms-papandreou",
   "version": "1.8.0",
   "description": "Netlify CMS lets content editors work on structured content stored in git",
   "main": "dist/cms.js",
