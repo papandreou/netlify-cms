@@ -58,7 +58,10 @@ import slateToRemark from './slateRemark';
 
 function base64Encode(str) {
   if (typeof window !== 'undefined' && typeof window.btoa === 'function') {
-    return window.btoa(str);
+    return btoa(encodeURIComponent(str).replace(
+      /%([0-9A-F]{2})/g,
+      (match, p1) => String.fromCharCode(parseInt(p1, 16))
+    ));
   }
   return new Buffer(str, 'utf-8').toString('base64');
 }
@@ -103,7 +106,12 @@ function markdownToRemarkRemoveTokenizers({ inlineTokenizers }) {
 
 function base64Decode(str) {
   if (typeof window !== 'undefined' && typeof window.atob === 'function') {
-    return window.atob(str);
+    return decodeURIComponent(
+      Array.prototype.map.call(
+        atob(str),
+        c => `%00${ c.charCodeAt(0).toString(16).slice(-2) }`
+      ).join('')
+    );
   }
   return new Buffer(str, 'base64').toString();
 }
