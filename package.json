@@ -1,6 +1,6 @@
 {
   "name": "netlify-cms-papandreou",
-  "version": "1.8.0-patch2",
+  "version": "1.8.0-patch3",
   "description": "Netlify CMS lets content editors work on structured content stored in git",
   "main": "dist/cms.js",
   "scripts": {
