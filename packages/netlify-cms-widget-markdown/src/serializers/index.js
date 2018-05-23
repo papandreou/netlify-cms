@@ -58,10 +58,11 @@ import { getEditorComponents } from '../MarkdownControl';
 
 function base64Encode(str) {
   if (typeof window !== 'undefined' && typeof window.btoa === 'function') {
-    return btoa(encodeURIComponent(str).replace(
-      /%([0-9A-F]{2})/g,
-      (match, p1) => String.fromCharCode(parseInt(p1, 16))
-    ));
+    return btoa(
+      encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) =>
+        String.fromCharCode(parseInt(p1, 16)),
+      ),
+    );
   }
   return new Buffer(str, 'utf-8').toString('base64');
 }
@@ -110,10 +111,11 @@ function markdownToRemarkRemoveTokenizers({ inlineTokenizers }) {
 function base64Decode(str) {
   if (typeof window !== 'undefined' && typeof window.atob === 'function') {
     return decodeURIComponent(
-      Array.prototype.map.call(
-        atob(str),
-        c => `%00${ c.charCodeAt(0).toString(16).slice(-2) }`
-      ).join('')
+      Array.prototype.map
+        .call(atob(str), function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join(''),
     );
   }
   return new Buffer(str, 'base64').toString();
