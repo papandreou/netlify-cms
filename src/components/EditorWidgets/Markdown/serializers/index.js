@@ -106,12 +106,9 @@ function markdownToRemarkRemoveTokenizers({ inlineTokenizers }) {
 
 function base64Decode(str) {
   if (typeof window !== 'undefined' && typeof window.atob === 'function') {
-    return decodeURIComponent(
-      Array.prototype.map.call(
-        atob(str),
-        c => `%00${ c.charCodeAt(0).toString(16).slice(-2) }`
-      ).join('')
-    );
+    return decodeURIComponent(Array.prototype.map.call(atob(str), function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
   }
   return new Buffer(str, 'base64').toString();
 }
