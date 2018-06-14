@@ -174,6 +174,9 @@ export const remarkToMarkdown = obj => {
     ($0, $1, $2) => `::: ${$1}\n${base64Decode($2)}:::`,
   );
 
+  // Normalize newlines:
+  markdown = markdown.replace(/\r\n?|\n\r?/g, '\n');
+
   /**
    * Return markdown with trailing whitespace removed.
    */
