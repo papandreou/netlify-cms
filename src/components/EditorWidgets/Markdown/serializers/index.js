@@ -163,6 +163,9 @@ export const remarkToMarkdown = obj => {
   // Convert "::: ComponentName <base64>" back into the nested yaml syntax
   markdown = markdown.replace(/^::: (\S+) (\S*)$/mg, ($0, $1, $2) => `::: ${ $1 }\n${ base64Decode($2) }:::`);
 
+  // Normalize newlines:
+  markdown = markdown.replace(/\r\n?|\n\r?/g, '\n');
+
   /**
    * Return markdown with trailing whitespace removed.
    */
