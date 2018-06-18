@@ -15,7 +15,7 @@ import onKeyDown from './keys';
 
 const createEmptyRawDoc = () => {
   const emptyText = Text.create('');
-  const emptyBlock = Block.create({ kind: 'block', type: 'paragraph', nodes: [ emptyText ] });
+  const emptyBlock = Block.create({ object: 'block', type: 'paragraph', nodes: [ emptyText ] });
   return { nodes: [emptyBlock] };
 };
 
@@ -78,7 +78,7 @@ export default class Editor extends Component {
     // Handle everything except list buttons.
     if (!['bulleted-list', 'numbered-list'].includes(type)) {
       const isActive = this.selectionHasBlock(type);
-      change = change.setBlock(isActive ? 'paragraph' : type);
+      change = change.setBlocks(isActive ? 'paragraph' : type);
     }
 
     // Handle the extra wrapping required for list buttons.

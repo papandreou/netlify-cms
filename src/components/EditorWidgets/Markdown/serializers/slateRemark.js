@@ -78,7 +78,7 @@ function transform(node) {
   /**
    * Run individual nodes through conversion factories.
    */
-  return ['text'].includes(node.kind)
+  return ['text'].includes(node.object)
     ? convertTextNode(node)
     : convertNode(node, children, shortcodePlugins);
 }
@@ -120,15 +120,15 @@ function combineTextAndInline(nodes) {
      * children, so we remove the child node here.
      */
     if (node.type === 'break') {
-      acc.push({ kind: 'inline', type: 'break' });
+      acc.push({ object: 'inline', type: 'break' });
       return acc;
     }
 
     /**
      * Convert remaining inline nodes to standalone text nodes with leaves.
      */
-    if (node.kind === 'inline') {
-      acc.push({ kind: 'text', leaves: [{ node, marks: data.marks }] });
+    if (node.object === 'inline') {
+      acc.push({ object: 'text', leaves: [{ node, marks: data.marks }] });
       return acc;
     }
 
@@ -238,7 +238,7 @@ function convertTextNode(node) {
     return condensedNodes.nodes;
   }
 
-  if (node.kind === 'inline') {
+  if (node.object === 'inline') {
     return transform(node);
   }
 
