@@ -75,7 +75,7 @@ function createBlock(type, nodes, props = {}) {
     nodes = undefined;
   }
 
-  const node = { object: 'block', type, ...props };
+  const node = { kind: 'block', type, ...props };
   return addNodes(node, nodes);
 }
 
@@ -84,7 +84,7 @@ function createBlock(type, nodes, props = {}) {
  * Create a Slate Block node.
  */
 function createInline(type, props = {}, nodes) {
-  const node = { object: 'inline', type, ...props };
+  const node = { kind: 'inline', type, ...props };
   return addNodes(node, nodes);
 }
 
@@ -93,7 +93,7 @@ function createInline(type, props = {}, nodes) {
  * Create a Slate Raw text node.
  */
 function createText(value, data) {
-  const node = { object: 'text', data };
+  const node = { kind: 'text', data };
   const leaves = isArray(value) ? value : [{ text: value }];
   return { ...node, leaves };
 }

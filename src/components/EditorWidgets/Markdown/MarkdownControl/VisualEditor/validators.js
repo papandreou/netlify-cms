@@ -8,7 +8,7 @@ export function validateNode(node) {
   /**
    * Validation of the document itself.
    */
-  if (node.object === 'document') {
+  if (node.kind === 'document') {
     const doc = node;
     /**
      * If the editor is ever in an empty state, insert an empty
