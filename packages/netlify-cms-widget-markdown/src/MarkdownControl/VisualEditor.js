@@ -149,6 +149,9 @@ export default class Editor extends React.Component {
     const defaultValues = {};
     pluginDefinition.get('fields', List()).forEach((field) => {
       let defaultValue = field.get('default');
+      if (typeof defaultValue === 'function') {
+        defaultValue = defaultValue(pluginDefinition);
+      }
       defaultValues[field.get('name')] = defaultValue;
     });
     const block = {
