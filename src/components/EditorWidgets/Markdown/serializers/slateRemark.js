@@ -234,6 +234,23 @@ function convertTextNode(node) {
    */
   if (node.leaves) {
     const processedLeaves = node.leaves.map(processLeaves);
+    // Compensate for Slate including leading and trailing whitespace in styled text nodes, which
+    // cannot be represented in markdown (https://github.com/netlify/netlify-cms/issues/1448)
+    for (let i = 0; i < processedLeaves.length; i += 1) {
+      const leaf = processedLeaves[i];
+      if (leaf.marks.length > 0 && leaf.text.trim() !== leaf.text) {
+        const [, leadingWhitespace, trimmedText, trailingWhitespace] = leaf.text.match(/^(\s*)(.*?)(\s*)$/);
+        leaf.text = trimmedText;
+        if (leadingWhitespace.length > 0) {
+          processedLeaves.splice(i, 0, { text: leadingWhitespace, marks: [], textNodeType: leaf.textNodeType });
+          i += 1;
+        }
+        if (trailingWhitespace.length > 0) {
+          processedLeaves.splice(i + 1, 0, { text: trailingWhitespace, marks: [], textNodeType: leaf.textNodeType });
+          i += 1;
+        }
+      }
+    }
     const condensedNodes = processedLeaves.reduce(condenseNodesReducer, { nodes: [] });
     return condensedNodes.nodes;
   }
