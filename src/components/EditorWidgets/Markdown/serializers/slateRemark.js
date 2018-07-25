@@ -238,7 +238,7 @@ function convertTextNode(node) {
     // cannot be represented in markdown (https://github.com/netlify/netlify-cms/issues/1448)
     for (let i = 0; i < processedLeaves.length; i += 1) {
       const leaf = processedLeaves[i];
-      if (leaf.marks.length > 0 && leaf.text.trim() !== leaf.text) {
+      if (leaf.marks.length > 0 && leaf.text && leaf.text.trim() !== leaf.text) {
         const [, leadingWhitespace, trimmedText, trailingWhitespace] = leaf.text.match(/^(\s*)(.*?)(\s*)$/);
         leaf.text = trimmedText;
         if (leadingWhitespace.length > 0) {
