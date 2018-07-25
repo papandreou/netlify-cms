@@ -17,13 +17,15 @@ describe('slate', () => {
   });
 
   it('should condense adjacent, identically styled text and inline nodes', () => {
-    expect(process('**a ~~b~~~~c~~**')).toEqual('**a ~~bc~~**');
-    expect(process('**a ~~b~~~~[c](d)~~**')).toEqual('**a ~~b[c](d)~~**');
+    // The flattening happens due to https://github.com/netlify/netlify-cms/issues/1448
+    expect(process('**a ~~b~~~~c~~**')).toEqual('**a** ~~**bc**~~');
+    expect(process('**a ~~b~~~~[c](d)~~**')).toEqual('**a** ~~**b[c](d)**~~');
   });
 
   it('should handle nested markdown entities', () => {
     expect(process('**a**b**c**')).toEqual('**a**b**c**');
-    expect(process('**a _b_ c**')).toEqual('**a _b_ c**');
+    // The flattening happens due to https://github.com/netlify/netlify-cms/issues/1448
+    expect(process('**a _b_ c**')).toEqual('**a** _**b**_ **c**');
   });
 
   it('should parse inline images as images', () => {
