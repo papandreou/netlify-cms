@@ -1,4 +1,4 @@
-import cms from 'netlify-cms-core/src';
+import cms from 'netlify-cms-core-papandreou/src';
 import { GitHubBackend } from 'netlify-cms-backend-github/src';
 import { GitLabBackend } from 'netlify-cms-backend-gitlab/src';
 import { GitGatewayBackend } from 'netlify-cms-backend-git-gateway/src';

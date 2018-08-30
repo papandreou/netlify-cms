@@ -1,4 +1,4 @@
-import cms from 'netlify-cms-core/src';
+import cms from 'netlify-cms-core-papandreou/src';
 import { StringControl, StringPreview } from 'netlify-cms-widget-string/src';
 import { NumberControl, NumberPreview } from 'netlify-cms-widget-number/src';
 import { TextControl, TextPreview } from 'netlify-cms-widget-text/src';
@@ -7,7 +7,7 @@ import { FileControl, FilePreview } from 'netlify-cms-widget-file/src';
 import { DateControl, DatePreview } from 'netlify-cms-widget-date/src';
 import { DateTimeControl, DateTimePreview } from 'netlify-cms-widget-datetime/src';
 import { SelectControl, SelectPreview } from 'netlify-cms-widget-select/src';
-import { MarkdownControl, MarkdownPreview } from 'netlify-cms-widget-markdown/src';
+import { MarkdownControl, MarkdownPreview } from 'netlify-cms-widget-markdown-papandreou/src';
 import { ListControl, ListPreview } from 'netlify-cms-widget-list/src';
 import { ObjectControl, ObjectPreview } from 'netlify-cms-widget-object/src';
 import { RelationControl, RelationPreview } from 'netlify-cms-widget-relation/src';
