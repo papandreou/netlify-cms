@@ -14,6 +14,7 @@ import plugins, { EditListConfigured } from './plugins';
 import onKeyDown from './keys';
 import visualEditorStyles from './visualEditorStyles';
 import { EditorControlBar } from '../styles';
+import { getEditorComponents } from './index';
 
 const VisualEditorContainer = styled.div`
   position: relative;
