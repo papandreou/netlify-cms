@@ -148,7 +148,7 @@ export default class Editor extends React.Component {
     const pluginDefinition = getEditorComponents().get(pluginId);
 
     const defaultValues = {};
-    pluginDefinition.get('fields', List()).forEach((field) => {
+    pluginDefinition.get('fields', List()).forEach(field => {
       let defaultValue = field.get('default');
       if (typeof defaultValue === 'function') {
         defaultValue = defaultValue(pluginDefinition);
@@ -161,7 +161,7 @@ export default class Editor extends React.Component {
       data: {
         shortcode: pluginId,
         shortcodeNew: true,
-        shortcodeData: new Map(defaultValues)
+        shortcodeData: new Map(defaultValues),
       },
       isVoid: true,
       nodes,
