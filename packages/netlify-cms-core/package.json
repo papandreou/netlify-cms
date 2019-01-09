@@ -1,5 +1,5 @@
 {
-  "name": "netlify-cms-core-papandreou",
+  "name": "netlify-cms-core",
   "description": "Netlify CMS core application, see netlify-cms package for the main distribution.",
   "version": "2.4.0",
   "repository": "https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core",
