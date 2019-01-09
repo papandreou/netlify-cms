@@ -1,4 +1,4 @@
-import cms from 'netlify-cms-core-papandreou/src';
+import cms from 'netlify-cms-core/src';
 import { StringControl, StringPreview } from 'netlify-cms-widget-string/src';
 import { NumberControl, NumberPreview } from 'netlify-cms-widget-number/src';
 import { TextControl, TextPreview } from 'netlify-cms-widget-text/src';
