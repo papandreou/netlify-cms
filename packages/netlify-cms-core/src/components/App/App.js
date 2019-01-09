@@ -1,17 +1,18 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { hot } from 'react-hot-loader';
+import { translate } from 'react-polyglot';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled from 'react-emotion';
 import { connect } from 'react-redux';
 import { Route, Switch, Redirect } from 'react-router-dom';
 import { Notifs } from 'redux-notifications';
 import TopBarProgress from 'react-topbar-progress-indicator';
-import { loadConfig as actionLoadConfig } from 'Actions/config';
-import { loginUser as actionLoginUser, logoutUser as actionLogoutUser } from 'Actions/auth';
+import { loadConfig } from 'Actions/config';
+import { loginUser, logoutUser } from 'Actions/auth';
 import { currentBackend } from 'src/backend';
 import { createNewEntry } from 'Actions/collections';
-import { openMediaLibrary as actionOpenMediaLibrary } from 'Actions/mediaLibrary';
+import { openMediaLibrary } from 'Actions/mediaLibrary';
 import MediaLibrary from 'MediaLibrary/MediaLibrary';
 import { Toast } from 'UI';
 import { Loader, colors } from 'netlify-cms-ui-default';
@@ -53,45 +54,50 @@ class App extends React.Component {
     auth: ImmutablePropTypes.map,
     config: ImmutablePropTypes.map,
     collections: ImmutablePropTypes.orderedMap,
+    loadConfig: PropTypes.func.isRequired,
+    loginUser: PropTypes.func.isRequired,
     logoutUser: PropTypes.func.isRequired,
-    dispatch: PropTypes.func.isRequired,
     user: ImmutablePropTypes.map,
     isFetching: PropTypes.bool.isRequired,
     publishMode: PropTypes.oneOf([SIMPLE, EDITORIAL_WORKFLOW]),
     siteId: PropTypes.string,
+    useMediaLibrary: PropTypes.bool,
     openMediaLibrary: PropTypes.func.isRequired,
+    showMediaButton: PropTypes.bool,
+    t: PropTypes.func.isRequired,
   };
 
-  static configError(config) {
+  configError(config) {
+    const t = this.props.t;
     return (
       <ErrorContainer>
-        <h1>Error loading the CMS configuration</h1>
-
+        <h1>{t('app.app.errorHeader')}</h1>
         <div>
-          <strong>Config Errors:</strong>
+          <strong>{t('app.app.configErrors')}:</strong>
           <ErrorCodeBlock>{config.get('error')}</ErrorCodeBlock>
-          <span>Check your config.yml file.</span>
+          <span>{t('app.app.checkConfigYml')}</span>
         </div>
       </ErrorContainer>
     );
   }
 
   componentDidMount() {
-    this.props.dispatch(actionLoadConfig());
+    const { loadConfig } = this.props;
+    loadConfig();
   }
 
   handleLogin(credentials) {
-    this.props.dispatch(actionLoginUser(credentials));
+    this.props.loginUser(credentials);
   }
 
   authenticating() {
-    const { auth } = this.props;
+    const { auth, t } = this.props;
     const backend = currentBackend(this.props.config);
 
     if (backend == null) {
       return (
         <div>
-          <h1>Waiting for backend...</h1>
+          <h1>{t('app.app.waitingBackend')}</h1>
         </div>
       );
     }
@@ -127,7 +133,10 @@ class App extends React.Component {
       logoutUser,
       isFetching,
       publishMode,
+      useMediaLibrary,
       openMediaLibrary,
+      t,
+      showMediaButton,
     } = this.props;
 
     if (config === null) {
@@ -135,22 +144,22 @@ class App extends React.Component {
     }
 
     if (config.get('error')) {
-      return App.configError(config);
+      return this.configError(config);
     }
 
     if (config.get('isFetching')) {
-      return <Loader active>Loading configuration...</Loader>;
+      return <Loader active>{t('app.app.loadingConfig')}</Loader>;
     }
 
     if (user == null) {
-      return this.authenticating();
+      return this.authenticating(t);
     }
 
     const defaultPath = `/collections/${collections.first().get('name')}`;
     const hasWorkflow = publishMode === EDITORIAL_WORKFLOW;
 
     return (
-      <div>
+      <>
         <Notifs CustomComponent={Toast} />
         <Header
           user={user}
@@ -160,57 +169,62 @@ class App extends React.Component {
           openMediaLibrary={openMediaLibrary}
           hasWorkflow={hasWorkflow}
           displayUrl={config.get('display_url')}
+          showMediaButton={showMediaButton}
         />
         <AppMainContainer>
           {isFetching && <TopBarProgress />}
-          <div>
-            <Switch>
-              <Redirect exact from="/" to={defaultPath} />
-              <Redirect exact from="/search/" to={defaultPath} />
-              {hasWorkflow ? <Route path="/workflow" component={Workflow} /> : null}
-              <Route exact path="/collections/:name" component={Collection} />
-              <Route
-                path="/collections/:name/new"
-                render={props => <Editor {...props} newRecord />}
-              />
-              <Route path="/collections/:name/entries/:slug" component={Editor} />
-              <Route
-                path="/search/:searchTerm"
-                render={props => <Collection {...props} isSearchResults />}
-              />
-              <Route component={NotFoundPage} />
-            </Switch>
-            <MediaLibrary />
-          </div>
+          <Switch>
+            <Redirect exact from="/" to={defaultPath} />
+            <Redirect exact from="/search/" to={defaultPath} />
+            {hasWorkflow ? <Route path="/workflow" component={Workflow} /> : null}
+            <Route exact path="/collections/:name" component={Collection} />
+            <Route
+              path="/collections/:name/new"
+              render={props => <Editor {...props} newRecord />}
+            />
+            <Route path="/collections/:name/entries/:slug" component={Editor} />
+            <Route
+              path="/search/:searchTerm"
+              render={props => <Collection {...props} isSearchResults />}
+            />
+            <Route component={NotFoundPage} />
+          </Switch>
+          {useMediaLibrary ? <MediaLibrary /> : null}
         </AppMainContainer>
-      </div>
+      </>
     );
   }
 }
 
 function mapStateToProps(state) {
-  const { auth, config, collections, globalUI } = state;
+  const { auth, config, collections, globalUI, mediaLibrary } = state;
   const user = auth && auth.get('user');
   const isFetching = globalUI.get('isFetching');
   const publishMode = config && config.get('publish_mode');
-  return { auth, config, collections, user, isFetching, publishMode };
-}
-
-function mapDispatchToProps(dispatch) {
+  const useMediaLibrary = !mediaLibrary.get('externalLibrary');
+  const showMediaButton = mediaLibrary.get('showMediaButton');
   return {
-    dispatch,
-    openMediaLibrary: () => {
-      dispatch(actionOpenMediaLibrary());
-    },
-    logoutUser: () => {
-      dispatch(actionLogoutUser());
-    },
+    auth,
+    config,
+    collections,
+    user,
+    isFetching,
+    publishMode,
+    showMediaButton,
+    useMediaLibrary,
   };
 }
+
+const mapDispatchToProps = {
+  openMediaLibrary,
+  loadConfig,
+  loginUser,
+  logoutUser,
+};
 
 export default hot(module)(
   connect(
     mapStateToProps,
     mapDispatchToProps,
-  )(App),
+  )(translate()(App)),
 );

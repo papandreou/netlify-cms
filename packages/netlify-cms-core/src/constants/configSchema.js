@@ -1,7 +1,6 @@
 import AJV from 'ajv';
 import ajvErrors from 'ajv-errors';
 import { formatExtensions, frontmatterFormats, extensionFormatters } from 'Formats/formats';
-import { IDENTIFIER_FIELDS } from 'Constants/fieldInference';
 
 /**
  * Config for fields in both file and folder collections.
@@ -36,11 +35,20 @@ const getConfigSchema = () => ({
       required: ['name'],
     },
     display_url: { type: 'string', examples: ['https://example.com'] },
+    logo_url: { type: 'string', examples: ['https://example.com/images/logo.svg'] },
     media_folder: { type: 'string', examples: ['assets/uploads'] },
     public_folder: { type: 'string', examples: ['/uploads'] },
+    media_library: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', examples: ['uploadcare'] },
+        config: { type: 'object' },
+      },
+      required: ['name'],
+    },
     publish_mode: {
       type: 'string',
-      enum: ['editorial_workflow'],
+      enum: ['simple', 'editorial_workflow'],
       examples: ['editorial_workflow'],
     },
     slug: {
@@ -110,25 +118,12 @@ const getConfigSchema = () => ({
             },
             required: ['format'],
           },
-          folder: {
-            errorMessage: {
-              _: 'must have a field that is a valid entry identifier',
-            },
-            properties: {
-              fields: {
-                contains: {
-                  properties: {
-                    name: { enum: IDENTIFIER_FIELDS },
-                  },
-                },
-              },
-            },
-          },
         },
       },
     },
   },
-  required: ['backend', 'media_folder', 'collections'],
+  required: ['backend', 'collections'],
+  anyOf: [{ required: ['media_folder'] }, { required: ['media_library'] }],
 });
 
 class ConfigError extends Error {
@@ -160,7 +155,7 @@ class ConfigError extends Error {
  * the config that is passed in.
  */
 export function validateConfig(config) {
-  const ajv = new AJV({ allErrors: true, jsonPointers: true });
+  const ajv = new AJV({ allErrors: true });
   ajvErrors(ajv);
 
   const valid = ajv.validate(getConfigSchema(), config);

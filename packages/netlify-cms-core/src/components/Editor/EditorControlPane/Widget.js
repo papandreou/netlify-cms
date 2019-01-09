@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
-import { Map } from 'immutable';
+import { Map, List } from 'immutable';
 import ValidationErrorTypes from 'Constants/validationErrorTypes';
 
 const truthy = () => ({ error: false });
@@ -10,7 +10,8 @@ const isEmpty = value =>
   value === null ||
   value === undefined ||
   (value.hasOwnProperty('length') && value.length === 0) ||
-  (value.constructor === Object && Object.keys(value).length === 0);
+  (value.constructor === Object && Object.keys(value).length === 0) ||
+  (List.isList(value) && value.size === 0);
 
 export default class Widget extends Component {
   static propTypes = {
@@ -35,6 +36,8 @@ export default class Widget extends Component {
     onChange: PropTypes.func.isRequired,
     onValidate: PropTypes.func,
     onOpenMediaLibrary: PropTypes.func.isRequired,
+    onClearMediaControl: PropTypes.func.isRequired,
+    onRemoveMediaControl: PropTypes.func.isRequired,
     onAddAsset: PropTypes.func.isRequired,
     onRemoveInsertedMedia: PropTypes.func.isRequired,
     getAsset: PropTypes.func.isRequired,
@@ -46,6 +49,7 @@ export default class Widget extends Component {
     queryHits: PropTypes.oneOfType([PropTypes.array, PropTypes.object]),
     editorControl: PropTypes.func.isRequired,
     uniqueFieldId: PropTypes.string.isRequired,
+    t: PropTypes.func.isRequired,
   };
 
   shouldComponentUpdate(nextProps) {
@@ -101,11 +105,14 @@ export default class Widget extends Component {
   };
 
   validatePresence = (field, value) => {
+    const t = this.props.t;
     const isRequired = field.get('required', true);
     if (isRequired && isEmpty(value)) {
       const error = {
         type: ValidationErrorTypes.PRESENCE,
-        message: `${field.get('label', field.get('name'))} is required.`,
+        message: t('editor.editorControlPane.widget.required', {
+          fieldLabel: field.get('label', field.get('name')),
+        }),
       };
 
       return { error };
@@ -114,6 +121,7 @@ export default class Widget extends Component {
   };
 
   validatePattern = (field, value) => {
+    const t = this.props.t;
     const pattern = field.get('pattern', false);
 
     if (isEmpty(value)) {
@@ -123,10 +131,10 @@ export default class Widget extends Component {
     if (pattern && !RegExp(pattern.first()).test(value)) {
       const error = {
         type: ValidationErrorTypes.PATTERN,
-        message: `${field.get(
-          'label',
-          field.get('name'),
-        )} didn't match the pattern: ${pattern.last()}`,
+        message: t('editor.editorControlPane.widget.regexPattern', {
+          fieldLabel: field.get('label', field.get('name')),
+          pattern: pattern.last(),
+        }),
       };
 
       return { error };
@@ -136,6 +144,7 @@ export default class Widget extends Component {
   };
 
   validateWrappedControl = field => {
+    const t = this.props.t;
     const response = this.wrappedControlValid();
     if (typeof response === 'boolean') {
       const isValid = response;
@@ -159,7 +168,9 @@ export default class Widget extends Component {
 
       const error = {
         type: ValidationErrorTypes.CUSTOM,
-        message: `${field.get('label', field.get('name'))} is processing.`,
+        message: t('editor.editorControlPane.widget.processing', {
+          fieldLabel: field.get('label', field.get('name')),
+        }),
       };
 
       return { error };
@@ -191,6 +202,8 @@ export default class Widget extends Component {
       metadata,
       onChange,
       onOpenMediaLibrary,
+      onRemoveMediaControl,
+      onClearMediaControl,
       onAddAsset,
       onRemoveInsertedMedia,
       getAsset,
@@ -210,6 +223,7 @@ export default class Widget extends Component {
       queryHits,
       clearSearch,
       isFetching,
+      t,
     } = this.props;
     return React.createElement(controlComponent, {
       field,
@@ -219,10 +233,12 @@ export default class Widget extends Component {
       onChange,
       onChangeObject: this.onChangeObject,
       onOpenMediaLibrary,
+      onClearMediaControl,
+      onRemoveMediaControl,
       onAddAsset,
       onRemoveInsertedMedia,
       getAsset,
-      forID: field.get('name') + uniqueFieldId,
+      forID: uniqueFieldId,
       ref: this.processInnerControlRef,
       classNameWrapper,
       classNameWidget,
@@ -239,6 +255,7 @@ export default class Widget extends Component {
       queryHits,
       clearSearch,
       isFetching,
+      t,
     });
   }
 }

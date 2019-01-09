@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import styled, { cx } from 'react-emotion';
 import { get, isEmpty, debounce } from 'lodash';
-import { Map, List } from 'immutable';
+import { List } from 'immutable';
 import { Value, Document, Block, Text } from 'slate';
 import { Editor as Slate } from 'slate-react';
 import { slateToMarkdown, markdownToSlate, htmlToSlate } from '../serializers';
@@ -14,7 +14,6 @@ import plugins, { EditListConfigured } from './plugins';
 import onKeyDown from './keys';
 import visualEditorStyles from './visualEditorStyles';
 import { EditorControlBar } from '../styles';
-import { getEditorComponents } from './index';
 
 const VisualEditorContainer = styled.div`
   position: relative;
@@ -143,29 +142,41 @@ export default class Editor extends React.Component {
   };
 
   handlePluginAdd = pluginId => {
+    const { getEditorComponents } = this.props;
     const { value } = this.state;
     const nodes = [Text.create('')];
-    const pluginDefinition = getEditorComponents().get(pluginId);
 
-    const defaultValues = {};
-    pluginDefinition.get('fields', List()).forEach(field => {
-      let defaultValue = field.get('default');
-      if (typeof defaultValue === 'function') {
-        defaultValue = defaultValue(pluginDefinition);
-      }
-      defaultValues[field.get('name')] = defaultValue;
-    });
+    /**
+     * Get default values for plugin fields.
+     */
+    const pluginFields = getEditorComponents().getIn([pluginId, 'fields'], List());
+    const defaultValues = pluginFields
+      .toMap()
+      .mapKeys((_, field) => field.get('name'))
+      .filter(field => field.has('default'))
+      .map(field => {
+        let defaultValue = field.get('default');
+        if (typeof defaultValue === 'function') {
+          defaultValue = defaultValue();
+        }
+        return defaultValue;
+      });
+
+    /**
+     * Create new shortcode block with default values set.
+     */
     const block = {
       object: 'block',
       type: 'shortcode',
       data: {
         shortcode: pluginId,
         shortcodeNew: true,
-        shortcodeData: new Map(defaultValues),
+        shortcodeData: defaultValues,
       },
       isVoid: true,
       nodes,
     };
+
     let change = value.change();
     const { focusBlock } = change.value;
 

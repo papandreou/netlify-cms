@@ -1,7 +1,7 @@
 import GoTrue from 'gotrue-js';
 import jwtDecode from 'jwt-decode';
 import { get, pick, intersection } from 'lodash';
-import { unsentRequest } from 'netlify-cms-lib-util';
+import { APIError, unsentRequest } from 'netlify-cms-lib-util';
 import { GitHubBackend } from 'netlify-cms-backend-github';
 import { GitLabBackend } from 'netlify-cms-backend-gitlab';
 import { BitBucketBackend, API as BitBucketAPI } from 'netlify-cms-backend-bitbucket';
@@ -63,7 +63,7 @@ export default class GitGateway {
     const backendTypeMatches = this.gatewayUrl.match(backendTypeRegex);
     if (backendTypeMatches) {
       this.backendType = backendTypeMatches[1];
-      this.gatewayUrl = this.gatewayUrl.replace(backendTypeRegex, '/');
+      this.gatewayUrl = this.gatewayUrl.replace(backendTypeRegex, '');
     } else {
       this.backendType = null;
     }
@@ -90,7 +90,28 @@ export default class GitGateway {
           {
             headers: { Authorization: `Bearer ${token}` },
           },
-        ).then(res => res.json());
+        ).then(async res => {
+          const contentType = res.headers.get('Content-Type');
+          if (!contentType.includes('application/json') && !contentType.includes('text/json')) {
+            throw new APIError(
+              `Your Git Gateway backend is not returning valid settings. Please make sure it is enabled.`,
+              res.status,
+              'Git Gateway',
+            );
+          }
+
+          const body = await res.json();
+
+          if (!res.ok) {
+            throw new APIError(
+              `Git Gateway Error: ${body.message ? body.message : body}`,
+              res.status,
+              'Git Gateway',
+            );
+          }
+
+          return body;
+        });
         this.acceptRoles = roles;
         if (github_enabled) {
           this.backendType = 'github';
@@ -110,7 +131,7 @@ export default class GitGateway {
       }
 
       const userData = {
-        name: user.user_metadata.name || user.email.split('@').shift(),
+        name: user.user_metadata.full_name || user.email.split('@').shift(),
         email: user.email,
         avatar_url: user.user_metadata.avatar_url,
         metadata: user.user_metadata,

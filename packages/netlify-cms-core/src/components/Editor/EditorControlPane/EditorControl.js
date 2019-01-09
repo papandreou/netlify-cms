@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
+import { translate } from 'react-polyglot';
 import styled, { css, cx } from 'react-emotion';
 import { partial, uniqueId } from 'lodash';
 import { connect } from 'react-redux';
@@ -8,7 +9,12 @@ import { colors, colorsRaw, transitions, lengths, borders } from 'netlify-cms-ui
 import { resolveWidget, getEditorComponents } from 'Lib/registry';
 import { addAsset } from 'Actions/media';
 import { query, clearSearch } from 'Actions/search';
-import { openMediaLibrary, removeInsertedMedia } from 'Actions/mediaLibrary';
+import {
+  openMediaLibrary,
+  removeInsertedMedia,
+  clearMediaControl,
+  removeMediaControl,
+} from 'Actions/mediaLibrary';
 import { getAsset } from 'Reducers';
 import Widget from './Widget';
 
@@ -137,11 +143,14 @@ class EditorControl extends React.Component {
     queryHits: PropTypes.oneOfType([PropTypes.array, PropTypes.object]),
     isFetching: PropTypes.bool,
     clearSearch: PropTypes.func.isRequired,
+    t: PropTypes.func.isRequired,
   };
 
   state = {
     activeLabel: false,
   };
+
+  uniqueFieldId = uniqueId(`${this.props.field.get('name')}-field-`);
 
   render() {
     const {
@@ -153,6 +162,8 @@ class EditorControl extends React.Component {
       boundGetAsset,
       onChange,
       openMediaLibrary,
+      clearMediaControl,
+      removeMediaControl,
       addAsset,
       removeInsertedMedia,
       onValidate,
@@ -161,12 +172,13 @@ class EditorControl extends React.Component {
       queryHits,
       isFetching,
       clearSearch,
+      t,
     } = this.props;
     const widgetName = field.get('widget');
     const widget = resolveWidget(widgetName);
     const fieldName = field.get('name');
     const fieldHint = field.get('hint');
-    const uniqueFieldId = uniqueId();
+    const isFieldOptional = field.get('required') === false;
     const metadata = fieldsMetaData && fieldsMetaData.get(fieldName);
     const errors = fieldsErrors && fieldsErrors.get(fieldName);
     return (
@@ -187,9 +199,9 @@ class EditorControl extends React.Component {
             { [styles.labelActive]: this.state.styleActive },
             { [styles.labelError]: !!errors },
           )}
-          htmlFor={fieldName + uniqueFieldId}
+          htmlFor={this.uniqueFieldId}
         >
-          {field.get('label')}
+          {`${field.get('label', field.get('name'))}${isFieldOptional ? ' (optional)' : ''}`}
         </label>
         <Widget
           classNameWrapper={cx(
@@ -203,13 +215,15 @@ class EditorControl extends React.Component {
           classNameLabelActive={styles.labelActive}
           controlComponent={widget.control}
           field={field}
-          uniqueFieldId={uniqueFieldId}
+          uniqueFieldId={this.uniqueFieldId}
           value={value}
           mediaPaths={mediaPaths}
           metadata={metadata}
           onChange={(newValue, newMetadata) => onChange(fieldName, newValue, newMetadata)}
           onValidate={onValidate && partial(onValidate, fieldName)}
           onOpenMediaLibrary={openMediaLibrary}
+          onClearMediaControl={clearMediaControl}
+          onRemoveMediaControl={removeMediaControl}
           onRemoveInsertedMedia={removeInsertedMedia}
           onAddAsset={addAsset}
           getAsset={boundGetAsset}
@@ -224,6 +238,7 @@ class EditorControl extends React.Component {
           queryHits={queryHits}
           clearSearch={clearSearch}
           isFetching={isFetching}
+          t={t}
         />
         {fieldHint && (
           <ControlHint active={this.state.styleActive} error={!!errors}>
@@ -244,6 +259,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = {
   openMediaLibrary,
+  clearMediaControl,
+  removeMediaControl,
   removeInsertedMedia,
   addAsset,
   query,
@@ -255,6 +272,6 @@ const ConnectedEditorControl = connect(
   mapDispatchToProps,
   null,
   { withRef: true },
-)(EditorControl);
+)(translate()(EditorControl));
 
 export default ConnectedEditorControl;
